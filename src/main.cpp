@@ -48,19 +48,22 @@ int main()
 
     glClearColor(0.f, 0.f, 1.f, 1.f); // Choisis la couleur à utiliser. Les paramètres sont R, G, B, A avec des valeurs qui vont de 0 à 1
     glClear(GL_COLOR_BUFFER_BIT); // Exécute concrètement l'action d'appliquer sur tout l'écran la couleur choisie au-dessus
+
     while (gl::window_is_open())
     {
-        // Rendu à chaque frame
-        // shader.bind();
-        // shader.set_uniform("colo", glm::vec4{0.4,0.1,0.6,1});
-        // shader.set_uniform("aspect_ratio", 1);
-        // shader.set_uniform("offset", glm::vec2{0., 0.});
-        // shader.set_uniform("time", 0);
-        // fadeScreenMesh.draw();
-
+        //Rendu à chaque frame
+        shader.bind();
+        shader.set_uniform("colo", glm::vec4{0.f, 0.f, 1.f, 0.03f});
+        shader.set_uniform("aspect_ratio", gl::framebuffer_aspect_ratio());
+        shader.set_uniform("isFade", true);
+        shader.set_uniform("offset", glm::vec2{0., 0.});
+        shader.set_uniform("time", time);
+        fadeScreenMesh.draw();
+        
         shader.bind();
         shader.set_uniform("colo", glm::vec4{0.4,0.1,0.6,1});
         shader.set_uniform("aspect_ratio", gl::framebuffer_aspect_ratio());
+        shader.set_uniform("isFade", false);
         shader.set_uniform("offset", glm::vec2{0., 0.});
         shader.set_uniform("time", time);
         time+= gl::delta_time_in_seconds();
