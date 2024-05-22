@@ -25,18 +25,12 @@ int main()
             },
         }},
         .index_buffer   = {
-        0, 1, 2, // Indices du premier triangle : on utilise le 1er, 2ème et 3ème sommet
-        0, 2, 3,  // Indices du deuxième triangle : on utilise le 1er, 3ème et 4ème sommet
-        1, 5, 6, // triangle 1 face droite
-        1, 6, 2,// triangle 2 face droite
-        4, 0, 3, // triangle 1 face gauche
-        4, 3, 7, // triangle 2 face gauche
-        4, 5, 1,// triangle 1 face dessus
-        4, 1, 0,// triangle 2 face dessus
-        2, 7, 3,// triangle 1 face dessous
-        2, 6, 7,// triangle 2 face dessous
-        1, 4, 2,// triangle 1 face derrière
-        4, 7, 2// triangle 2 face derrière
+        0, 1, 2,  0, 2, 3,  // Face 1 (bottom)
+            4, 5, 6,  4, 6, 7,  // Face 2 (top)
+            0, 1, 5,  0, 5, 4,  // Face 3 (front)
+            2, 3, 7,  2, 7, 6,  // Face 4 (back)
+            0, 3, 7,  0, 7, 4,  // Face 5 (left)
+            1, 2, 6,  1, 6, 5   // Face 6 (right)
         },
     }};
     auto const shader = gl::Shader{{
@@ -44,21 +38,6 @@ int main()
         .fragment = gl::ShaderSource::File{"res/fragment.glsl"},
     }};
 
-    // auto const fadeScreenMesh = gl::Mesh{{
-    //     .vertex_buffers = {{
-    //         .layout = {gl::VertexAttribute::Position2D{0 /*Index de l'attribut dans le shader, on en reparle juste après*/}},
-    //         .data   = {
-    //             -1.f, -1.f, // Position2D du 1er sommet
-    //             +1.f, -1.f, // Position2D du 2ème sommet
-    //             +1.f, +1.f, // Position2D du 3ème sommet
-    //             -1.f, +1.f  // Position2D du 4ème sommet
-    //         },
-    //     }},
-    //     .index_buffer   = {
-    //     0, 1, 2, // Indices du premier triangle : on utilise le 1er, 2ème et 3ème sommet
-    //     0, 2, 3  // Indices du deuxième triangle : on utilise le 1er, 3ème et 4ème sommet
-    //     },
-    // }};
 
     //Caméra
     auto camera = gl::Camera{};

@@ -6,9 +6,11 @@ uniform float time;
 uniform vec3 offset;
 uniform bool isFade;
 uniform mat4 view_projection_matrix;
+out vec3 vertex_position;
 
 void main()
 {
+    vertex_position = in_position;
     vec3 pos = in_position;
     pos.x /= aspect_ratio;
     vec3 foffset = offset;
