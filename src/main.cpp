@@ -1,4 +1,5 @@
 #include "opengl-framework/opengl-framework.hpp" // Inclue la librairie qui va nous servir à faire du rendu
+#include "glm/ext/matrix_clip_space.hpp"
 
 int main()
 {
@@ -44,6 +45,11 @@ int main()
         },
     }};
 
+    //Caméra
+    auto camera = gl::Camera{};
+    gl::set_events_callbacks({camera.events_callbacks()});
+    
+
     float time=0.0;
 
     glClearColor(0.f, 0.f, 1.f, 1.f); // Choisis la couleur à utiliser. Les paramètres sont R, G, B, A avec des valeurs qui vont de 0 à 1
@@ -51,14 +57,19 @@ int main()
 
     while (gl::window_is_open())
     {
-        //Rendu à chaque frame
-        shader.bind();
-        shader.set_uniform("colo", glm::vec4{0.f, 0.f, 1.f, 0.03f});
-        shader.set_uniform("aspect_ratio", gl::framebuffer_aspect_ratio());
-        shader.set_uniform("isFade", true);
-        shader.set_uniform("offset", glm::vec2{0., 0.});
-        shader.set_uniform("time", time);
-        fadeScreenMesh.draw();
+        glm::mat4 const view_matrix = camera.view_matrix();
+        glm::mat4 const projection_matrix = glm::infinitePerspective(1.f /*field of view in radians*/, gl::framebuffer_aspect_ratio() /*aspect ratio*/, 0.001f /*near plane*/);
+        glm::mat4 const view_projection_matrix = projection_matrix * view_matrix;
+
+        glClearColor(0.f, 0.f, 1.f, 1.f); // Choisis la couleur à utiliser. Les paramètres sont R, G, B, A avec des valeurs qui vont de 0 à 1
+        glClear(GL_COLOR_BUFFER_BIT); // Exécute concrètement l'action d'appliquer sur tout l'écran la couleur choisie au-dessus
+        // shader.bind();
+        // shader.set_uniform("colo", glm::vec4{0.f, 0.f, 1.f, 0.03f});
+        // shader.set_uniform("aspect_ratio", gl::framebuffer_aspect_ratio());
+        // shader.set_uniform("isFade", true);
+        // shader.set_uniform("offset", glm::vec2{0., 0.});
+        // shader.set_uniform("time", time);
+        // fadeScreenMesh.draw();
         
         shader.bind();
         shader.set_uniform("colo", glm::vec4{0.4,0.1,0.6,1});
@@ -66,6 +77,7 @@ int main()
         shader.set_uniform("isFade", false);
         shader.set_uniform("offset", glm::vec2{0., 0.});
         shader.set_uniform("time", time);
+        shader.set_uniform("view_projection_matrix", view_projection_matrix);
         time+= gl::delta_time_in_seconds();
         triangle_mesh.draw(); // C'est ce qu'on appelle un "draw call" : on envoie l'instruction à la carte graphique de dessiner notre mesh.
 

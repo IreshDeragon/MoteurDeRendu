@@ -5,6 +5,7 @@ uniform float aspect_ratio;
 uniform float time;
 uniform vec2 offset;
 uniform bool isFade;
+uniform mat4 view_projection_matrix;
 
 void main()
 {
@@ -14,10 +15,13 @@ void main()
     if(!isFade){
         foffset.x += sin(time)/2;
         foffset.y += cos(time)/2;
+        gl_Position = view_projection_matrix * vec4(in_position, 0., 1.);
     }
     else{
         pos = in_position;
+        gl_Position = vec4(pos + foffset, 0., 1.);
     }
     //vec2 offset = vec2(0.4, 0.4);
-    gl_Position = vec4(pos + foffset, 0., 1.);
+    //gl_Position = vec4(pos + foffset, 0., 1.);
+    
 }
