@@ -9,6 +9,10 @@ void main()
 {
 
     vec4 texture_color = texture(my_texture, uv);
+    float intensity = (texture_color.x + texture_color.y + texture_color.z)/3.;
+    texture_color.x = intensity;
+    texture_color.y = intensity;
+    texture_color.z = intensity;
     out_color = texture_color;
     
 }
