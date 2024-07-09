@@ -1,6 +1,61 @@
+
 #include "opengl-framework/opengl-framework.hpp" // Inclue la librairie qui va nous servir à faire du rendu
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
+#include "tiny_obj_loader.h"
+#include <iostream>
+
+
+
+
+auto load_mesh(std::filesystem::path const& path) -> gl::Mesh
+{
+    // On lit le fichier avec tinyobj
+    auto reader = tinyobj::ObjReader{};
+    reader.ParseFromFile(gl::make_absolute_path(path).string(), {});
+
+    if (!reader.Error().empty())
+        throw std::runtime_error("Failed to read 3D model:\n" + reader.Error());
+    if (!reader.Warning().empty())
+        std::cout << "Warning while reading 3D model:\n" + reader.Warning();
+
+    // On met tous les attributs dans un tableau
+    auto vertices = std::vector<float>{};
+    for (auto const& shape : reader.GetShapes())
+    {
+        for (auto const& idx : shape.mesh.indices)
+        {
+            // Position
+            vertices.push_back(reader.GetAttrib().vertices[3 * idx.vertex_index + 0]);
+            vertices.push_back(reader.GetAttrib().vertices[3 * idx.vertex_index + 1]);
+            vertices.push_back(reader.GetAttrib().vertices[3 * idx.vertex_index + 2]);
+
+            // UV
+            vertices.push_back(reader.GetAttrib().texcoords[2 * idx.texcoord_index + 0]);
+            vertices.push_back(reader.GetAttrib().texcoords[2 * idx.texcoord_index + 1]);
+
+            // Normale
+            vertices.push_back(reader.GetAttrib().normals[3 * idx.normal_index + 0]);
+            vertices.push_back(reader.GetAttrib().normals[3 * idx.normal_index + 1]);
+            vertices.push_back(reader.GetAttrib().normals[3 * idx.normal_index + 2]);
+        };
+    }
+
+    return gl::Mesh{
+        {
+            .vertex_buffers = {
+                    {
+                        .layout = {
+                                gl::VertexAttribute::Position3D{0},
+                                gl::VertexAttribute::Normal3D{1},
+                                gl::VertexAttribute::UV{2}},
+                                .data = vertices
+                    }}
+        }};
+
+    // TODO créer et return un gl::mesh, qui utilisera le tableau `vertices` en tant que `data` pour son vertex buffer.
+    // Attention, il faudra bien spécifier le layout pour qu'il corresponde à l'ordre des attributs dans le tableau `vertices`.
+}
 
 int main()
 {
@@ -10,6 +65,9 @@ int main()
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA, GL_ONE); // On peut configurer l'équation qui mélange deux couleurs, comme pour faire différents blend mode dans Photoshop. Cette équation-ci donne le blending "normal" entre pixels transparents.
+
+    //Objet
+    
     
     auto const triangle_mesh = gl::Mesh{{
         .vertex_buffers = {{
@@ -98,6 +156,71 @@ int main()
     }
     };
 
+    //init Objet BOAT
+    std::string inputfile = gl::make_absolute_path("res/Objets/fourareen.obj").string();
+    // tinyobj::ObjReader reader;
+    
+    // if (!reader.ParseFromFile(inputfile)) {
+    //     if (!reader.Error().empty()) {
+    //         std::cerr << "TinyObjReader: " << reader.Error();
+    //     }
+    //     exit(1);
+    // }
+
+    // if (!reader.Warning().empty()) {
+    //   std::cout << "TinyObjReader: " << reader.Warning();
+    // }
+    // auto& attrib = reader.GetAttrib();
+    // auto& shapes = reader.GetShapes();
+    // std::vector<float> data{};
+    // auto& materials = reader.GetMaterials();
+
+    // for (int i = 0; i < shapes.size(); ++i) {
+    //     int index_offset = 0;
+    //     for (int y = 0; y < shapes[i].mesh.num_face_vertices.size(); ++y) {
+    //         int NBRFaceVerticales = shapes[i].mesh.num_face_vertices[y];
+
+    //         for (int FaceVerIndex = 0; FaceVerIndex < NBRFaceVerticales; ++FaceVerIndex) {
+    //             tinyobj::index_t meshIndices = shapes[i].mesh.indices[index_offset + FaceVerIndex];
+    //             data.push_back(attrib.vertices[3*int(meshIndices.vertex_index) + 0]);
+
+    //             data.push_back(attrib.vertices[3*int(meshIndices.vertex_index) + 2]);
+    //             data.push_back(attrib.vertices[3*int(meshIndices.vertex_index) + 1]);
+
+    //             if (meshIndices.normal_index >= 0) {
+    //                 glm::vec3 normals_normalized = glm::normalize(glm::vec3{
+    //                         attrib.normals[3*int(meshIndices.normal_index) + 0],
+    //                         attrib.normals[3*int(meshIndices.normal_index) + 2],
+    //                         attrib.normals[3*int(meshIndices.normal_index) + 2]
+    //                 });
+    //                 data.push_back(normals_normalized.x);
+    //                 data.push_back(normals_normalized.y);
+    //                 data.push_back(normals_normalized.z);
+    //             }
+
+    //             if (meshIndices.texcoord_index >= 0) {
+    //                 data.push_back(attrib.texcoords[2*int(meshIndices.texcoord_index) + 0]);
+    //                 data.push_back(attrib.texcoords[2*int(meshIndices.texcoord_index) + 1]);
+    //             }
+    //         }
+    //         index_offset += NBRFaceVerticales;
+    //     }
+    // }
+    auto const boat_mesh = load_mesh(inputfile);
+    
+    auto const boat_texture = gl::Texture{
+        gl::TextureSource::File{
+                .path           = "res/Objets/fourareen2K_albedo.jpg",
+                .flip_y         = true,
+                .texture_format = gl::InternalFormat::RGBA8,
+        },
+        gl::TextureOptions{
+                .minification_filter  = gl::Filter::Linear,
+                .magnification_filter = gl::Filter::Linear,
+                .wrap_x               = gl::Wrap::Repeat,
+                .wrap_y               = gl::Wrap::Repeat,
+        }
+};
 
     //Caméra
     auto camera = gl::Camera{};
@@ -116,7 +239,7 @@ int main()
 
         while (gl::window_is_open())
         {
-            glClearColor(1.f, 0.f, 1.f, 1.f); // Dessine du rouge, non pas à l'écran, mais sur notre render target
+            glClearColor(1.f, 0.f, 1.f, 1.f); 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             render_target.render([&]() {
@@ -132,8 +255,9 @@ int main()
                     shader.set_uniform("offset", glm::vec3{0., 0., 0.});
                     shader.set_uniform("time", time);
                     shader.set_uniform("view_projection_matrix", view_projection_matrix);
-                    shader.set_uniform("my_texture", texture);
-                    triangle_mesh.draw();
+                    shader.set_uniform("my_texture", boat_texture);
+                    //triangle_mesh.draw();
+                    boat_mesh.draw();
             });
 
             postProcessShader.bind();
