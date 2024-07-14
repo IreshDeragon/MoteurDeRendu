@@ -53,8 +53,6 @@ auto load_mesh(std::filesystem::path const& path) -> gl::Mesh
                     }}
         }};
 
-    // TODO créer et return un gl::mesh, qui utilisera le tableau `vertices` en tant que `data` pour son vertex buffer.
-    // Attention, il faudra bien spécifier le layout pour qu'il corresponde à l'ordre des attributs dans le tableau `vertices`.
 }
 
 int main()
@@ -158,54 +156,6 @@ int main()
 
     //init Objet BOAT
     std::string inputfile = gl::make_absolute_path("res/Objets/fourareen.obj").string();
-    // tinyobj::ObjReader reader;
-    
-    // if (!reader.ParseFromFile(inputfile)) {
-    //     if (!reader.Error().empty()) {
-    //         std::cerr << "TinyObjReader: " << reader.Error();
-    //     }
-    //     exit(1);
-    // }
-
-    // if (!reader.Warning().empty()) {
-    //   std::cout << "TinyObjReader: " << reader.Warning();
-    // }
-    // auto& attrib = reader.GetAttrib();
-    // auto& shapes = reader.GetShapes();
-    // std::vector<float> data{};
-    // auto& materials = reader.GetMaterials();
-
-    // for (int i = 0; i < shapes.size(); ++i) {
-    //     int index_offset = 0;
-    //     for (int y = 0; y < shapes[i].mesh.num_face_vertices.size(); ++y) {
-    //         int NBRFaceVerticales = shapes[i].mesh.num_face_vertices[y];
-
-    //         for (int FaceVerIndex = 0; FaceVerIndex < NBRFaceVerticales; ++FaceVerIndex) {
-    //             tinyobj::index_t meshIndices = shapes[i].mesh.indices[index_offset + FaceVerIndex];
-    //             data.push_back(attrib.vertices[3*int(meshIndices.vertex_index) + 0]);
-
-    //             data.push_back(attrib.vertices[3*int(meshIndices.vertex_index) + 2]);
-    //             data.push_back(attrib.vertices[3*int(meshIndices.vertex_index) + 1]);
-
-    //             if (meshIndices.normal_index >= 0) {
-    //                 glm::vec3 normals_normalized = glm::normalize(glm::vec3{
-    //                         attrib.normals[3*int(meshIndices.normal_index) + 0],
-    //                         attrib.normals[3*int(meshIndices.normal_index) + 2],
-    //                         attrib.normals[3*int(meshIndices.normal_index) + 2]
-    //                 });
-    //                 data.push_back(normals_normalized.x);
-    //                 data.push_back(normals_normalized.y);
-    //                 data.push_back(normals_normalized.z);
-    //             }
-
-    //             if (meshIndices.texcoord_index >= 0) {
-    //                 data.push_back(attrib.texcoords[2*int(meshIndices.texcoord_index) + 0]);
-    //                 data.push_back(attrib.texcoords[2*int(meshIndices.texcoord_index) + 1]);
-    //             }
-    //         }
-    //         index_offset += NBRFaceVerticales;
-    //     }
-    // }
     auto const boat_mesh = load_mesh(inputfile);
     
     auto const boat_texture = gl::Texture{
@@ -220,7 +170,10 @@ int main()
                 .wrap_x               = gl::Wrap::Repeat,
                 .wrap_y               = gl::Wrap::Repeat,
         }
-};
+    };
+    //Ligths
+    const glm::vec3 light_direction = glm::vec3(0.2, 0.3, -1.);
+    const glm::vec3 ponctualLight_position = glm::vec3(1.7, 0, 0);
 
     //Caméra
     auto camera = gl::Camera{};
@@ -236,7 +189,6 @@ int main()
     
 
     float time=0.0;
-
         while (gl::window_is_open())
         {
             glClearColor(1.f, 0.f, 1.f, 1.f); 
@@ -249,13 +201,14 @@ int main()
                     glm::mat4 const projection_matrix = glm::infinitePerspective(1.f /*field of view in radians*/, gl::framebuffer_aspect_ratio() /*aspect ratio*/, 0.001f /*near plane*/);
                     glm::mat4 const view_projection_matrix = projection_matrix * view_matrix;
                     shader.bind();
-                    shader.set_uniform("colo", glm::vec4{0.4,0.1,0.6,1});
                     shader.set_uniform("aspect_ratio", gl::framebuffer_aspect_ratio());
                     shader.set_uniform("isFade", false);
                     shader.set_uniform("offset", glm::vec3{0., 0., 0.});
                     shader.set_uniform("time", time);
                     shader.set_uniform("view_projection_matrix", view_projection_matrix);
                     shader.set_uniform("my_texture", boat_texture);
+                    shader.set_uniform("light_direction", light_direction);
+                    shader.set_uniform("ponctualLight_position", ponctualLight_position);
                     //triangle_mesh.draw();
                     boat_mesh.draw();
             });
