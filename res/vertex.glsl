@@ -11,23 +11,19 @@ uniform mat4 view_projection_matrix;
 out vec3 vertex_position;
 out vec2 uv;
 out vec3 normal;
+//out vec4 view_projection_matrix_frag;
+
+
 
 void main()
 {
+    //view_projection_matrix_frag = view_projection_matrix;
     uv = in_uv;
     normal = in_normal;
     vertex_position = in_position;
     vec3 pos = in_position;
     pos.x /= aspect_ratio;
     vec3 foffset = offset;
-    if(!isFade){
-        foffset.x += sin(time)/2;
-        foffset.y += cos(time)/2;
-        gl_Position = view_projection_matrix * vec4(in_position, 1.);
-    }
-    else{
-        pos = in_position;
-        gl_Position = vec4(pos + foffset, 1.);
-    }
-    
+
+    gl_Position = view_projection_matrix * vec4(in_position, 1.);
 }

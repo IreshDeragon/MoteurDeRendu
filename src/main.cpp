@@ -174,6 +174,8 @@ int main()
     //Ligths
     const glm::vec3 light_direction = glm::vec3(0.2, 0.3, -1.);
     const glm::vec3 ponctualLight_position = glm::vec3(1.7, 0, 0);
+    const glm::float32 ponctualLight_intensity = 1.5;
+    const glm::vec3 light_color = glm::vec3(0.5, 0.5, 1);
 
     //Caméra
     auto camera = gl::Camera{};
@@ -198,8 +200,23 @@ int main()
                 glClearColor(1.f, 0.f, 0.f, 1.f); // Dessine du rouge, non pas à l'écran, mais sur notre render target
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                     glm::mat4 const view_matrix = camera.view_matrix();
-                    glm::mat4 const projection_matrix = glm::infinitePerspective(1.f /*field of view in radians*/, gl::framebuffer_aspect_ratio() /*aspect ratio*/, 0.001f /*near plane*/);
-                    glm::mat4 const view_projection_matrix = projection_matrix * view_matrix;
+                    glm::mat4 const projection_matrix = glm::infinitePerspective(
+                            glm::radians(90.f),
+                            gl::framebuffer_aspect_ratio(),
+                            0.0001f
+                    );
+                    glm::mat4 const ortho_matrix = glm::ortho(-2.0f, +2.0f, -1.5f, +1.5f, 0.1f, 100.0f);
+                    glm::mat4 const translation_matrix = glm::translate(
+                            glm::mat4{1.f},
+                            glm::vec3{-2.f, 0.f, -1.f}
+                    );
+                    glm::mat4 const rotation_matrix = glm::rotate(
+                            glm::mat4{1.f},
+                            0.f,
+                            glm::vec3{0.f, 0.f, 1.f}
+                    );
+                    glm::mat4 const model_matrix = rotation_matrix * translation_matrix;
+                    glm::mat4 const view_projection_matrix =  projection_matrix * view_matrix * model_matrix;
                     shader.bind();
                     shader.set_uniform("aspect_ratio", gl::framebuffer_aspect_ratio());
                     shader.set_uniform("isFade", false);
@@ -209,6 +226,8 @@ int main()
                     shader.set_uniform("my_texture", boat_texture);
                     shader.set_uniform("light_direction", light_direction);
                     shader.set_uniform("ponctualLight_position", ponctualLight_position);
+                    shader.set_uniform("ponctualLigth_intensity", ponctualLight_intensity);
+                    shader.set_uniform("light_color", light_color);
                     //triangle_mesh.draw();
                     boat_mesh.draw();
             });
